@@ -1,0 +1,5 @@
+include LICENSE
+include README.md
+recursive-include django-simple_ssg/static *
+recursive-include django-simple_ssg/templates *
+recursive-include django-simple_ssg/docs *

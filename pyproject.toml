@@ -1,0 +1,35 @@
+[build-system]
+requires = ['setuptools>=61.0.0', 'wheel']
+build-backend = 'setuptools.build_meta:'
+
+# [project]
+# name = "django_simple_ssg"
+# version = "0.2.0"
+# description = "A Django app to build simple static sites from kramdown/markdown"
+# readme = "Readme.md"
+# authors = [{ name = "Gerhard68", email = "gerhard.spitzlsperger@gs68.de"}]
+# license = { file = "LICENSE"}
+# classifiers = [
+#     "License :: OSI Approved :: MIT LIcense",
+#     "Environment :: Web Environment",
+#     "Framework :: Django", 
+#     "Intended Audience :: Developers",
+#     "Operating System :: OS Independent",
+#     "Programming Language :: Python",
+#     "Programming Language :: Python :: 3",
+#     "Programming Language :: Python :: 3 :: Only"
+# ]
+# keywords = ["django", "static-site-generator"]
+# dependencies = [
+#     "django >= 3.2",
+#     "tomli==2.0.1"
+# ]
+# requires_python = ">=3.9"
+# [project.optional-dependencies]
+# dev = ["black", "bumpver", "isort", "pip-tools", "pytest"]
+
+# [project.urls]
+# Homepage = "https://github.com/gerhard-gs68/django-simple-ssg"
+
+# [project.scripts]
+# realpython = "ssg.__main__:main"
