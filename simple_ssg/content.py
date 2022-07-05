@@ -1,9 +1,11 @@
 from django.conf import settings
 
+from bs4 import BeautifulSoup
 from datetime import datetime
 import subprocess
 import shutil
 import sys
+
 
 from simple_ssg.bratmpl.bratmpl import BraTmpl
 
@@ -22,8 +24,9 @@ class Content:
         self.snippets_path = self.content_path / 'snippets'
         self.tmp_path = self.content_path / 'tmp'
         self.static_path = settings.BASE_DIR / settings.STATIC_URL.strip('/') # / around static url is confusing PATH
-        print(settings.BASE_DIR , settings.STATIC_URL.strip('/'), settings.BASE_DIR / settings.STATIC_URL.strip('/'))
-    
+        #print(settings.BASE_DIR , settings.STATIC_URL.strip('/'), settings.BASE_DIR / settings.STATIC_URL.strip('/'))
+        self.mode = 'django'
+
     def get_content_path(self):
         return self.content_path
 
@@ -40,6 +43,38 @@ class Content:
         shutil.copytree(self.assets_path, self.content_path / 'out' / 'assets', dirs_exist_ok=True)
 
     
+    def handle_static_links(self, text):
+        print(f"{datetime.now()} -- Handling static links for {text[0:100]} for django or others.")
+
+
+        def has_href_src_etc(tag):
+            return tag.has_attr('href')  or tag.has_attr('src')
+
+
+        print("+++++++++++++++++++++++++++++++++++++++++++++") 
+       
+        soup = BeautifulSoup(text, 'html.parser')
+
+        relevant_tags = soup.find_all(has_href_src_etc)
+
+        for attrib in ['href', 'src']:
+            for tag in relevant_tags:
+                if tag.has_attr(attrib) and tag[attrib].startswith('static/') :
+                    print(tag[attrib])
+                    t = tag[attrib][len('static/'):]
+                    if self.mode == 'django':
+                        tag[attrib] = f"{{% static '{t}' %}}"
+                        print(tag[attrib])
+            
+
+
+
+       
+    
+        print("+++++++++++++++++++++++++++++++++++++++++++++") 
+        return str(soup)
+
+    
     def handle_braket(self, kd_file, template):
         print(f"{datetime.now()} -- Handling snippets for {kd_file}.")
 
@@ -47,9 +82,10 @@ class Content:
 
         with open(kd_file) as tf, open(file_out, 'w') as wf:
             text = tf.read()
+            
             template.set_text(text)
             rendered_text = template.render() 
-        
+  
             wf.write(rendered_text)   
 
         return file_out
@@ -101,7 +137,7 @@ view_objects = dict()
 
         for child in self.kd_docs_path.iterdir():
             
-            file_name = child.name.strip(".kd")
+            file_name = child.name.strip(".md")
 
             processed_kd_file = self.handle_braket(child, t)
 
@@ -109,10 +145,19 @@ view_objects = dict()
             out = self.content_path / "out" / (file_name + ".html")
 
             
-            cmd=f"kramdown --template={tmplte} {processed_kd_file} > {out}"                                                                  
+            cmd=f"kramdown --template={tmplte} {processed_kd_file} > {out}"    
+            #cmd=f"kramdown  {processed_kd_file} > {out}"                                                                
             p=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)      
             output, errors = p.communicate()         
             print(output, errors )               
+
+            # process static links depening on targets
+            with open(out) as tf:
+                text = tf.read()
+                proccessed_text = self.handle_static_links(text)
+
+            with open(out, 'w') as wf:
+                wf.write(proccessed_text)
 
             
             # now use the processed file to gen the template and the views
@@ -127,8 +172,7 @@ view_objects = dict()
         print(f"{datetime.now()} -- ",   "Preprocess kramdown templates folder.") 
 
         t = template
-        t.read_snippets(self.snippets_path)
-
+    
         for child in self.kd_templates_path.iterdir():
             
             file_name = child.name
@@ -137,12 +181,12 @@ view_objects = dict()
 
             with open(child) as tf, open(p_tmplte / file_name, 'w') as wf:
                 text = tf.read()
+                
                 t.set_text(text)
                 rendered_text = t.render() 
-              
+                #print(rendered_text)
                 wf.write(rendered_text)   
-            
-
+    
 
 
     def handle_content(self) :

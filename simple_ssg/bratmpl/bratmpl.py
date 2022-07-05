@@ -61,6 +61,8 @@ class BraTmpl():
                 # content inside command django is only included if mode is django
                 elif command == 'django' and mode=='django':
                     result.append(mini_token_list[1])
+                elif command == 'django_url' and mode=='django':
+                    result.append(f"{{% url '{mini_token_list[1]}' %}}")
                 else:
                     result.append('<!!!Something wrong with BraTmpl!!!>')
             else:
