@@ -95,8 +95,6 @@ class Content:
         ""
         print(f"{datetime.now()} -- ",   "Handling kramdown documents to django.") 
 
-
-
         shutil.copy2(completly_processed_kd_file, self.dj_tmplt_path)
 
         gen_view += f"""
@@ -107,7 +105,7 @@ view_objects['{name}'] = {name}
 
 
 """
-
+        print(gen_view)
         return gen_view
         
 
@@ -137,7 +135,7 @@ view_objects = dict()
 
         for child in self.kd_docs_path.iterdir():
             
-            file_name = child.name.strip(".md")
+            file_name = child.stem
 
             processed_kd_file = self.handle_braket(child, t)
 
