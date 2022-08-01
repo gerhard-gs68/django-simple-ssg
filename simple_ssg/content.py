@@ -97,6 +97,10 @@ class Content:
 
         shutil.copy2(completly_processed_kd_file, self.dj_tmplt_path)
 
+        # contact is a pregenerated view no need to add to gen_views
+        if name == 'contact':
+            return gen_view
+
         gen_view += f"""
 def {name}(request):
     return render(request, '{name}.html')  
@@ -105,7 +109,7 @@ view_objects['{name}'] = {name}
 
 
 """
-        print(gen_view)
+     
         return gen_view
         
 
@@ -156,6 +160,7 @@ view_objects = dict()
 
             with open(out, 'w') as wf:
                 wf.write(proccessed_text)
+
 
             
             # now use the processed file to gen the template and the views
