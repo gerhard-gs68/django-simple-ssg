@@ -77,9 +77,18 @@ class Content:
     
     def handle_braket(self, kd_file, template):
         print(f"{datetime.now()} -- Handling snippets for {kd_file}.")
+        
+        rel_path_to_kddocs = kd_file.relative_to(self.kd_docs_path)
+        #print("KDPATH", kd_file)
+        #print("RELPATH", rel_path_to_kddocs)
 
-        file_out = self.content_path / "tmp" / kd_file.name
+  
+        file_out = self.content_path / "tmp" / str(rel_path_to_kddocs)
+        fileout_path = file_out.parent
 
+        #print("Fileout ", file_out)
+
+        fileout_path.mkdir(parents=True, exist_ok=True)
         with open(kd_file) as tf, open(file_out, 'w') as wf:
             text = tf.read()
             
@@ -115,7 +124,7 @@ view_objects['{name}'] = {name}
 
 
     def handle_kddocs(self):
-        print(f"{datetime.now()} -- ",   "Handling kramdown documents folder.") 
+        print(f"\n{datetime.now()} -- ",   "Handling kramdown documents folder.") 
 
         t = BraTmpl('')
         t.read_snippets(self.snippets_path)
@@ -137,16 +146,22 @@ view_objects = dict()
 
 """
 
-        for child in self.kd_docs_path.iterdir():
-            
+        for child in self.kd_docs_path.rglob("*.md"):
             file_name = child.stem
+            print(f"\n{datetime.now()} -- Handling kramdown document {file_name}") 
+            
+            #print(child)
+            rel_path = child.relative_to(self.kd_docs_path)
+            print("RELPATH", rel_path.parent)
+            
 
             processed_kd_file = self.handle_braket(child, t)
 
             tmplte = self.content_path / "ptml/bs5-tmpl.html"
-            out = self.content_path / "out" / (file_name + ".html")
-
+            out = self.content_path / "out" / str(rel_path.parent) /(file_name + ".html")
+            out_path = out.parent
             
+            out_path.mkdir(parents=True, exist_ok=True)
             cmd=f"kramdown --template={tmplte} {processed_kd_file} > {out}"    
             #cmd=f"kramdown  {processed_kd_file} > {out}"                                                                
             p=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)      
@@ -169,6 +184,8 @@ view_objects = dict()
 
         with open(self.main_app_path / 'gen_views.py', 'w') as wf:
             wf.write(gen_view)   
+
+       
 
 
     def handle_kd_templates(self, template):
