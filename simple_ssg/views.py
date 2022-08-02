@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, FileResponse
 
 from .models import FilledContactForm
 from .forms import ContactForm
@@ -29,3 +29,12 @@ def contact(request):
       
 
     return render(request, 'contact.html', {'cform' : form}) 
+
+
+def download(request, d_file= "default_file"):
+    print(d_file)
+        
+        
+    return FileResponse(open("./media/datasheet.PDF", 'rb'), as_attachment=True)
+
+
