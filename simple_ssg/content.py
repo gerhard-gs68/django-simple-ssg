@@ -2,6 +2,7 @@ from django.conf import settings
 
 from bs4 import BeautifulSoup
 from datetime import datetime
+import frontmatter
 import subprocess
 import shutil
 import sys
@@ -51,7 +52,7 @@ class Content:
             return tag.has_attr('href')  or tag.has_attr('src')
 
 
-        print("+++++++++++++++++++++++++++++++++++++++++++++") 
+        #print("+++++++++++++++++++++++++++++++++++++++++++++") 
        
         soup = BeautifulSoup(text, 'html.parser')
 
@@ -60,18 +61,18 @@ class Content:
         for attrib in ['href', 'src']:
             for tag in relevant_tags:
                 if tag.has_attr(attrib) and tag[attrib].startswith('static/') :
-                    print(tag[attrib])
+                    #print(tag[attrib])
                     t = tag[attrib][len('static/'):]
                     if self.mode == 'django':
                         tag[attrib] = f"{{% static '{t}' %}}"
-                        print(tag[attrib])
+                        #print(tag[attrib])
             
 
 
 
        
     
-        print("+++++++++++++++++++++++++++++++++++++++++++++") 
+        #print("+++++++++++++++++++++++++++++++++++++++++++++") 
         return str(soup)
 
     
@@ -91,13 +92,15 @@ class Content:
         fileout_path.mkdir(parents=True, exist_ok=True)
         with open(kd_file) as tf, open(file_out, 'w') as wf:
             text = tf.read()
+
+            post = frontmatter.loads(text)
             
-            template.set_text(text)
+            template.set_text(post.content)
             rendered_text = template.render() 
   
             wf.write(rendered_text)   
 
-        return file_out
+        return post, file_out
 
 
     def handle_dj_tmplts(self, name, completly_processed_kd_file, gen_view):
@@ -107,7 +110,7 @@ class Content:
         shutil.copy2(completly_processed_kd_file, self.dj_tmplt_path)
 
         # contact is a pregenerated view no need to add to gen_views
-        if name == 'contact':
+        if name in ['contact', 'files']:
             return gen_view
 
         gen_view += f"""
@@ -150,17 +153,20 @@ view_objects = dict()
             file_name = child.stem
             print(f"\n{datetime.now()} -- Handling kramdown document {file_name}") 
             
+
+
+
             #print(child)
             rel_path = child.relative_to(self.kd_docs_path)
             print("RELPATH", rel_path.parent)
             
 
-            processed_kd_file = self.handle_braket(child, t)
+            post, processed_kd_file = self.handle_braket(child, t)
 
             tmplte = self.content_path / "ptml/bs5-tmpl.html"
             out = self.content_path / "out" / str(rel_path.parent) /(file_name + ".html")
             out_path = out.parent
-            
+
             out_path.mkdir(parents=True, exist_ok=True)
             cmd=f"kramdown --template={tmplte} {processed_kd_file} > {out}"    
             #cmd=f"kramdown  {processed_kd_file} > {out}"                                                                

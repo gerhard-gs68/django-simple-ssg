@@ -62,7 +62,12 @@ class BraTmpl():
                 elif command == 'django' and mode=='django':
                     result.append(mini_token_list[1])
                 elif command == 'django_url' and mode=='django':
-                    result.append(f"{{% url '{mini_token_list[1]}' %}}")
+                    url_parts = mini_token_list[1].split()
+                    url = f"'{url_parts.pop(0)}'" 
+                    for item in url_parts:
+                        url += ' ' + item
+                    print('URL',url)
+                    result.append(f"{{% url {url} %}}")
                 else:
                     result.append('<!!!Something wrong with BraTmpl!!!>')
             else:
