@@ -110,7 +110,13 @@ class Content:
         shutil.copy2(completly_processed_kd_file, self.dj_tmplt_path)
 
         # contact is a pregenerated view no need to add to gen_views
-        if name in ['contact', 'files']:
+        if name in ['contact', 'files', 'thanks_for_sending_message', 
+                    'upload_documents', 'uploaded_documents',
+
+                    # handled by django.contrib.auth.urls
+                    'login', 'logged_out', 'password_reset_complete',
+                    'password_reset_confirm', 'password_reset_done', 
+                    'password_reset_email', 'password_reset_form']:
             return gen_view
 
         gen_view += f"""
@@ -163,7 +169,7 @@ view_objects = dict()
 
             post, processed_kd_file = self.handle_braket(child, t)
 
-            tmplte = self.content_path / "ptml/bs5-tmpl.html"
+            tmplte = self.content_path / f"ptml/{post['md_template']}"
             out = self.content_path / "out" / str(rel_path.parent) /(file_name + ".html")
             out_path = out.parent
 
