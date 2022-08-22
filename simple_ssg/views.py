@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test  
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -9,7 +9,7 @@ from django.template.context_processors import csrf
 from crispy_forms.utils import render_crispy_form
 
 from .models import FilledContactForm, Files
-from .forms import ContactForm, UploadDocumentsForm
+from .forms import ContactForm
 
 from pathlib import Path
 
@@ -47,56 +47,6 @@ def contact(request):
     return render(request, 'contact.html', {'cform' : form}) 
 
 
-
-@login_required
-def upload_documents(request):
-   
-    if request.method == 'POST':
-        form = UploadDocumentsForm(request.POST, request.FILES)
-  
-        if form.is_valid():
-        
-            #handle_uploaded_file(request.FILES['file'], request.FILES['file'].name)
-            new_document = form.save()
-          
-
-            # send_mail(
-            #     form.cleaned_data['subject'],
-            #     f"from {form.cleaned_data['name']}, ({form.cleaned_data['email']})\n\n{form.cleaned_data['message']}",
-            #      'supidupihall@blueberrye.io',
-            #     ['gerhard.spitzlsperger@lfoundry.com'],
-            #      fail_silently=False,
-            # )
-            ctx = dict(form.cleaned_data)
-            ctx['id'] = new_document.pk
-            
-            template = render(request, 'uploaded_document.html', context=ctx)
-            template['Hx-Push'] = '/uploaded_document/'
-            return template
-
-        # this is only executed if form is not valid
-        ctx = {}
-        ctx.update(csrf(request))
-        form_html = render_crispy_form(form, context=ctx)
-        return HttpResponse(form_html)
-
-    else:
-        form = UploadDocumentsForm()
-      
-    
-    return render(request, 'upload_documents.html', {'cform' : form})
-
-
-
-def download(request, d_file= "default_file"):
-    print(d_file)
-                
-    return FileResponse(open("./media/datasheet.PDF", 'rb'), as_attachment=True)
-
-
-@login_required
-def logged_in_download(request, d_file="default_file"):
-    return download(request, d_file)
 
 
 def thanks_for_sending_message(request):
@@ -188,12 +138,4 @@ def add_file(request):
 #     print(the_files)
 
 #     return render(request, 'files.html', {'files' : the_files}) 
-
-
-
-
-def thanks_for_sending_message(request):
-    return render(request, 'thanks_for_sending_message.html')  
-        
-
 
