@@ -24,8 +24,9 @@ class Content:
         self.kd_docs_path = self.content_path / 'kd_docs' 
         self.snippets_path = self.content_path / 'snippets'
         self.tmp_path = self.content_path / 'tmp'
-        self.static_path = settings.BASE_DIR / settings.STATIC_URL.strip('/') # / around static url is confusing PATH
-        #print(settings.BASE_DIR , settings.STATIC_URL.strip('/'), settings.BASE_DIR / settings.STATIC_URL.strip('/'))
+        self.static_path = settings.BASE_DIR / settings.STATIC_URL.strip('/') 
+        # / around static url is confusing PATH
+        print(settings.BASE_DIR , settings.STATIC_URL.strip('/'), settings.BASE_DIR / settings.STATIC_URL.strip('/'))
         self.mode = 'django'
 
     def get_content_path(self):
@@ -66,12 +67,7 @@ class Content:
                     if self.mode == 'django':
                         tag[attrib] = f"{{% static '{t}' %}}"
                         #print(tag[attrib])
-            
-
-
-
-       
-    
+                
         #print("+++++++++++++++++++++++++++++++++++++++++++++") 
         return str(soup)
 
@@ -80,27 +76,22 @@ class Content:
         print(f"{datetime.now()} -- Handling snippets for {kd_file}.")
         
         rel_path_to_kddocs = kd_file.relative_to(self.kd_docs_path)
-        #print("KDPATH", kd_file)
-        #print("RELPATH", rel_path_to_kddocs)
-
   
         file_out = self.content_path / "tmp" / str(rel_path_to_kddocs)
         fileout_path = file_out.parent
-
-        #print("Fileout ", file_out)
 
         fileout_path.mkdir(parents=True, exist_ok=True)
         with open(kd_file) as tf, open(file_out, 'w') as wf:
             text = tf.read()
 
-            post = frontmatter.loads(text)
+            post_yaml = frontmatter.loads(text)
             
-            template.set_text(post.content)
+            template.set_text(post_yaml.content)
             rendered_text = template.render() 
   
             wf.write(rendered_text)   
 
-        return post, file_out
+        return post_yaml, file_out
 
 
     def handle_dj_tmplts(self, name, completly_processed_kd_file, gen_view_code, gen_view=True):
@@ -109,22 +100,14 @@ class Content:
         
 
         rel_path = completly_processed_kd_file.relative_to(self.content_path / "out")
-        print(completly_processed_kd_file, rel_path)
-        print(self.dj_tmplt_path / str(rel_path))
+        #print(completly_processed_kd_file, rel_path)
+        #print(self.dj_tmplt_path / str(rel_path))
 
         dest = self.dj_tmplt_path / str(rel_path)
         dest_path = dest.parent
         dest_path.mkdir(parents=True, exist_ok=True)
         shutil.copy2(completly_processed_kd_file, dest)
 
-        # contact is a pregenerated view no need to add to gen_views
-        # if name in ['contact', 'files', 'thanks_for_sending_message', 
-        #             'upload_documents', 'uploaded_documents',
-
-        #             # handled by django.contrib.auth.urls
-        #             'login', 'logged_out', 'password_reset_complete',
-        #             'password_reset_confirm', 'password_reset_done', 
-        #             'password_reset_email', 'password_reset_form']:
         if not gen_view:
             return gen_view_code
 
