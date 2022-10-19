@@ -1,6 +1,7 @@
 from os import PathLike
 import re
 from pathlib import Path
+import yaml
 
 class BraTmpl():
     """Compile an text into a template function"""
@@ -13,6 +14,12 @@ class BraTmpl():
 
     def set_text(self, text):
         self.tokens = self.compile(text)
+
+    def read_variables(self, variables_file):
+        with open(variables_file, 'r') as yf:
+            self.var = yaml.safe_load(yf)
+
+            print(self.var)
 
 
     def read_snippets(self, snippets_dir):
@@ -52,22 +59,33 @@ class BraTmpl():
                 token = token.strip()
 
                 mini_token_list = token.split('|')
+                print(mini_token_list)
                 
                 command = mini_token_list[0].strip()
             
-                # replace snippets 
                 if command == 'snippet':
                     result.append(self.global_context[mini_token_list[1]])
-                # content inside command django is only included if mode is django
+               
                 elif command == 'django' and mode=='django':
                     result.append(mini_token_list[1])
-                elif command == 'django_url' and mode=='django':
+                
+                elif command == 'url' and mode=='django':
                     url_parts = mini_token_list[1].split()
                     url = f"'{url_parts.pop(0)}'" 
                     for item in url_parts:
                         url += ' ' + item
-                    print('URL',url)
+                    else:
+                        pass
+                   
                     result.append(f"{{% url {url} %}}")
+
+                elif command == 'url' and mode=='static':
+                    print(self.var['url'][mini_token_list[1]])
+                    result.append(self.var['url'][mini_token_list[1]])
+
+                elif command == 'var':
+                    result.append(self.var[mini_token_list[1]])
+               
                 else:
                     result.append('<!!!Something wrong with BraTmpl!!!>')
             else:

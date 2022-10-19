@@ -23,6 +23,7 @@ class Content:
         self.kd_templates_path = self.content_path / 'templates'
         self.kd_docs_path = self.content_path / 'kd_docs' 
         self.snippets_path = self.content_path / 'snippets'
+        self.variables_file = self.content_path / 'variables.yaml'
         self.tmp_path = self.content_path / 'tmp'
         self.static_path = settings.BASE_DIR / settings.STATIC_URL.strip('/') 
         # / around static url is confusing PATH
@@ -100,8 +101,6 @@ class Content:
         
 
         rel_path = completly_processed_kd_file.relative_to(self.content_path / "out")
-        #print(completly_processed_kd_file, rel_path)
-        #print(self.dj_tmplt_path / str(rel_path))
 
         dest = self.dj_tmplt_path / str(rel_path)
         dest_path = dest.parent
@@ -129,6 +128,7 @@ view_objects['{name}'] = {name}
 
         t = BraTmpl('')
         t.read_snippets(self.snippets_path)
+        t.read_variables(self.variables_file)
 
         # prepare the kramdown templates 
         self.handle_kd_templates(t)
@@ -204,7 +204,6 @@ view_objects = dict()
                 
                 t.set_text(text)
                 rendered_text = t.render() 
-                #print(rendered_text)
                 wf.write(rendered_text)   
     
 
